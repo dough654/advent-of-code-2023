@@ -1,4 +1,3 @@
-
 open System.IO
 open System.Text.RegularExpressions
 
@@ -27,29 +26,20 @@ let findAllSubstringIndexes (input: string) (pattern: string) =
         yield m.Index]
 
 let getCombinedFirstAndLastNumbers (str: string) =
-    let allNumbers = 
+    let allFoundNumbers = 
         numbersMap
         |> Map.fold (fun (acc: FoundNumberResult list) spelledNumber numberStr  -> 
             let indexesForSpelled = findAllSubstringIndexes str spelledNumber
             let indexesForDigit = findAllSubstringIndexes str numberStr
-            let mapToFoundNumbers (indexes: int list) = 
-                if indexes.Length > 0 then
-                    indexes
-                    |> List.map (fun index -> { number = numberStr; index = index })
-                else
-                    []
-            let foundSpelled = mapToFoundNumbers indexesForSpelled
-            let foundDigits = mapToFoundNumbers indexesForDigit
-            acc 
-            |> List.append foundSpelled 
-            |> List.append foundDigits
-
+            let mapToFoundNumbers index = { number = numberStr; index = index }
+            let foundSpelled = indexesForSpelled |> List.map mapToFoundNumbers
+            let foundDigits = indexesForDigit |> List.map mapToFoundNumbers
+            acc @ foundSpelled @ foundDigits
         ) []
         |> List.sortBy (fun { index = i } -> i)
-    let firstNumber = (allNumbers |> List.head).number
-    let lastNumber = (allNumbers |> List.last).number
-    $"{firstNumber}{lastNumber}"
-
+    let firstNumber = (allFoundNumbers |> List.head).number
+    let lastNumber = (allFoundNumbers |> List.last).number
+    firstNumber + lastNumber
 
 let answer =
     Path.Combine(__SOURCE_DIRECTORY__, "..", "input.txt") 
